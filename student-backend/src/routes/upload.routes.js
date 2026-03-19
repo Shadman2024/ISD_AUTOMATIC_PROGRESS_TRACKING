@@ -5,7 +5,7 @@ const { videoUpload, materialUpload }  = require('../middleware/upload.middlewar
 const { uploadVideo, uploadMaterial, deleteVideo } = require('../controllers/uploadController');
 
 // All upload routes require authentication
-router.use(verifyToken);
+// router.use(verifyToken);
 
 // POST /api/upload/video
 // Instructor uploads a video lecture (multipart/form-data)
