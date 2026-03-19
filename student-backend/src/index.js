@@ -13,10 +13,15 @@ app.use(express.json());
 const authRoutes = require('./routes/auth.routes');
 app.use('/api/auth', authRoutes);
 
+const progressRoutes = require('./routes/progress.routes');
+app.use('/api/progress', progressRoutes);
+
 // Health check
 app.get('/', (req, res) => {
     res.json({ message: 'Student Backend is running!' });
 });
+
+
 
 const PORT = process.env.STUDENT_PORT || 5000;
 app.listen(PORT, () => {
