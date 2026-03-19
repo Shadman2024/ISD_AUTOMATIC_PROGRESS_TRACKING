@@ -13,8 +13,10 @@ app.use(express.json());
 const authRoutes = require('./routes/auth.routes');
 app.use('/api/auth', authRoutes);
 
-const progressRoutes = require('./routes/progress.routes');
-app.use('/api/progress', progressRoutes);
+// Temporarily commented — Issue #1: getLessonsProgress typo in progress_router.js
+// Will uncomment after Arpita fixes the bug
+// const progressRoutes = require('./routes/progress_router');
+// app.use('/api/progress', progressRoutes);
 
 // Health check
 app.get('/', (req, res) => {
