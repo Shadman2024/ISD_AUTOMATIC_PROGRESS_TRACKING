@@ -178,7 +178,7 @@ export default function CourseContentPage() {
                                 {/* Materials for this section (show under lectures in same section) */}
                                 {isSelected && sectionMaterials.length > 0 && (
                                     <div style={styles.materialsBox}>
-                                        <p style={styles.materialsTitle}>📎 Materials</p>
+                                        <p style={styles.materialsTitle}> Materials</p>
                                         {sectionMaterials.map(mat => (
                                             <a
                                                 key={mat.id}
@@ -447,4 +447,25 @@ const styles = {
         borderRadius:'50%',
         animation:   'spin 0.8s linear infinite',
     },
+
+    materialsTitle: {
+        color: '#9ca3af',
+        fontSize: '11px',
+    },
+    materialsBox:  { 
+        backgroundColor: '#250229', 
+        padding: '8px 1rem 12px', 
+        borderBottom: '1px solid #cad0d9' 
+    },
+    materialLink: { 
+        display: 'block',        
+        color: '#7c3aed', 
+        fontSize: '12px', 
+        padding: '5px 0',       
+        textDecoration: 'none', 
+        cursor: 'pointer',
+        whiteSpace: 'nowrap',   
+        overflow: 'hidden',
+        textOverflow: 'ellipsis' 
+    },    
 };
