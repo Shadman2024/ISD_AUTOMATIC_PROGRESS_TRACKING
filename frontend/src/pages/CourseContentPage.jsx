@@ -8,6 +8,7 @@
  * 5. Instant checkmark update when lecture completes
  */
 
+
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import VideoPlayer from './VideoPlayer';
@@ -25,7 +26,11 @@ export default function CourseContentPage() {
     const [lectureProgress, setLectureProgress]  = useState({}); // {lectureId: percent}
     const [courseProgress,  setCourseProgress]   = useState(0);
     const [loading,         setLoading]          = useState(true);
+    const [openSections, setOpenSections] = useState({});
 
+    const toggleSection = useCallback((sectionId) => {
+        setOpenSections(prev => ({ ...prev, [sectionId]: !prev[sectionId] }));
+    }, []);
     // Auto-advance countdown state
     const [countdown,       setCountdown]        = useState(null); // null = not active
     const [countdownTimer,  setCountdownTimer]   = useState(null);
@@ -39,7 +44,12 @@ export default function CourseContentPage() {
         const fetchData = async () => {
             try {
                 const res = await studentAPI.get(`/courses/${courseId}/lectures`);
-                setLectures(res.data.lectures || []);
+                const lecs = res.data.lectures || [];
+                setLectures(lecs);
+                // Auto-open all sections on first load
+                const openAll = {};
+                lecs.forEach(l => { openAll[l.section_id] = true; });
+                setOpenSections(openAll);
                 setMaterials(res.data.materials || []);                
             } catch (err) {
                 console.error('Could not load lectures:', err.message);
@@ -162,17 +172,36 @@ export default function CourseContentPage() {
                             .sort((a, b) => a.position - b.position)
                             .map(section => (
                                 <div key={section.title}>
-                                    {/* Section header */}
-                                    <div style={styles.sectionHeader}>
-                                        <span style={styles.sectionIcon}>📂</span>
-                                        <span style={styles.sectionTitle}>{section.title}</span>
-                                        <span style={styles.sectionCount}>
-                                            {section.lectures.length} lectures
-                                        </span>
-                                    </div>
+                                    {/* Section header — collapsible dropdown */}
+                                    {(() => {
+                                        const sectionId  = section.lectures[0]?.section_id;
+                                        const isOpen     = openSections[sectionId] !== false;
+                                        const doneCount  = section.lectures.filter(l => completedIds.has(l.id)).length;
+                                        const totalMins  = Math.floor(
+                                            section.lectures.reduce((s, l) => s + (l.duration || 0), 0) / 60
+                                        );
+                                        return (
+                                            <div
+                                                style={styles.sectionHeader}
+                                                onClick={() => toggleSection(sectionId)}
+                                            >
+                                                <span style={{
+                                                    ...styles.sectionArrow,
+                                                    transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)',
+                                                }}>▶</span>
+                                                <div style={{ flex: 1, minWidth: 0 }}>
+                                                    <div style={styles.sectionTitle}>{section.title}</div>
+                                                    <div style={styles.sectionMeta}>
+                                                        {section.lectures.length} lectures · {totalMins}m
+                                                        {doneCount > 0 && ` · ${doneCount}/${section.lectures.length} completed`}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
 
-                                    {/* Lectures under this section */}
-                                    {section.lectures.map(lecture => {
+                                    {/* Lectures — show only when section is open */}
+                                    {openSections[section.lectures[0]?.section_id] !== false && section.lectures.map(lecture => {
                                         const isDone     = completedIds.has(lecture.id);
                                         const isSelected = lecture.globalIdx === selectedIdx;
                                         const prog       = lectureProgress[lecture.id];
@@ -319,8 +348,8 @@ const styles = {
     },
     sidebar: {
         width:           '300px',
-        backgroundColor: '#1f2937',
-        borderRight:     '1px solid #374151',
+        backgroundColor: '#0f172a',
+        borderRight:     '1px solid #1e293b',
         display:         'flex',
         flexDirection:   'column',
         overflowY:       'auto',
@@ -328,7 +357,8 @@ const styles = {
     },
     sidebarHeader: {
         padding:      '1rem',
-        borderBottom: '1px solid #374151',
+        borderBottom: '1px solid #1e293b',
+        backgroundColor: '#0a0f1e',
     },
     backBtn: {
         background:   'none',
@@ -352,14 +382,16 @@ const styles = {
         display:      'flex',
         alignItems:   'center',
         gap:          '10px',
-        padding:      '10px 1rem',
+        padding:      '10px 1rem 10px 1.8rem',
         cursor:       'pointer',
-        borderBottom: '1px solid #374151',
+        borderBottom: '1px solid #1e293b',
         transition:   'background 0.15s',
+        backgroundColor: '#1a1f2e',
     },
     lectureItemActive: {
-        backgroundColor: '#374151',
+        backgroundColor: '#1e1b4b',
         borderLeft:      '3px solid #7c3aed',
+        paddingLeft:     'calc(1.8rem - 3px)',
     },
     checkDone: {
         width:           '22px',
@@ -493,28 +525,60 @@ const styles = {
         borderRadius:'50%',
         animation:   'spin 0.8s linear infinite',
     },
+    sectionHeader: {
+        display:         'flex',
+        alignItems:      'center',
+        gap:             '10px',
+        padding:         '12px 1rem',
+        backgroundColor: '#0f172a',
+        borderBottom:    '1px solid #1e293b',
+        cursor:          'pointer',
+        userSelect:      'none',
+        transition:      'background 0.15s',
+    },
+    sectionArrow: {
+        fontSize:   '9px',
+        color:      '#7c3aed',
+        transition: 'transform 0.2s ease',
+        flexShrink:  0,
+    },
     sectionTitle: {
-        color: '#f3f4f6',
-        fontSize: '14px',
+        color:      '#e2e8f0',
+        fontSize:   '13px',
+        fontWeight: '700',
+        marginBottom: '2px',
     },
+    sectionMeta: {
+        color:    '#64748b',
+        fontSize: '10px',
+    },
+    sectionIcon:    { fontSize: '14px' },
+    sectionCount:   { color: '#6b7280', fontSize: '10px', whiteSpace: 'nowrap' },
     materialsTitle: {
-        color: '#9ca3af',
-        fontSize: '11px',
+        color:         '#64748b',
+        fontSize:      '10px',
+        fontWeight:    '700',
+        margin:        '0 0 6px',
+        textTransform: 'uppercase',
+        letterSpacing: '0.08em',
     },
-    materialsBox:  { 
-        backgroundColor: '#250229', 
-        padding: '8px 1rem 12px', 
-        borderBottom: '1px solid #cad0d9' 
+    materialsBox: {
+        backgroundColor: '#0f172a',
+        padding:         '8px 1rem 12px 2.5rem',
+        borderBottom:    '1px solid #1e293b',
     },
-    materialLink: { 
-        display: 'block',        
-        color: '#7c3aed', 
-        fontSize: '12px', 
-        padding: '5px 0',       
-        textDecoration: 'none', 
-        cursor: 'pointer',
-        whiteSpace: 'nowrap',   
-        overflow: 'hidden',
-        textOverflow: 'ellipsis' 
-    },    
+    materialLink: {
+        display:        'flex',
+        alignItems:     'center',
+        gap:            '8px',
+        color:          '#a78bfa',
+        fontSize:       '12px',
+        padding:        '6px 0',
+        textDecoration: 'none',
+        cursor:         'pointer',
+        borderBottom:   '1px solid #1e1e2e',
+    },
+    materialIcon:  { fontSize: '14px', flexShrink: 0 },
+    materialName:  { flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+    downloadBadge: { fontSize: '10px', color: '#10b981', backgroundColor: '#022c22', padding: '2px 7px', borderRadius: '4px', whiteSpace: 'nowrap', border: '1px solid #065f46' },
 };
