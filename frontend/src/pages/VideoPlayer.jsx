@@ -6,11 +6,12 @@
  * - Play/Pause + Speed
  * - ProgressBar with seek
  * - Save position every 10s + on pause
-  * VideoPlayer v1 — Keyboard Shortcuts
+ * VideoPlayer v1 — Keyboard Shortcuts
  * Added: Space/K=play, ←→=seek 10s, ↑↓=volume, M=mute, F=fullscreen
  */
 
-import { useRef, useState, useEffect } from 'react';
+
+import { useRef, useState, useEffect, useCallback } from 'react';
 import ProgressBar from '../components/ProgressBar';
 import useVideoProgress from '../hooks/useVideoProgress';
 import studentAPI from '../services/api';
@@ -91,7 +92,9 @@ export default function VideoPlayer({ videoIdProp, courseIdProp, studentIdProp, 
         if (!v) return;
         const newVol = Math.max(0, Math.min(v.volume + delta, 1));
         v.volume = newVol;
-        setVolume(newVol);
+        setVolume(newVol);              // ← React state update
+        setIsMuted(newVol === 0);       // ← mute state update
+        if (newVol > 0) v.muted = false; // ← unmute if volume increases
     }, []);
 
     const toggleFullscreen = useCallback(() => {
