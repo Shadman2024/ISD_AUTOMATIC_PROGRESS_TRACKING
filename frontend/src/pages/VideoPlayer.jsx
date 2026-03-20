@@ -27,7 +27,7 @@ import useVideoProgress from '../hooks/useVideoProgress';
 import studentAPI from '../services/api';
 
 
-export default function VideoPlayer({ videoIdProp, courseIdProp, studentIdProp, onComplete }) {
+export default function VideoPlayer({ videoIdProp, courseIdProp, studentIdProp, onComplete, onNextLecture }) {
     const user      = JSON.parse(localStorage.getItem('user') || '{}');
     const videoId   = videoIdProp;
     const courseId  = courseIdProp;
@@ -45,6 +45,8 @@ export default function VideoPlayer({ videoIdProp, courseIdProp, studentIdProp, 
     const [isMuted,      setIsMuted]      = useState(false);
     const [isBuffering,  setIsBuffering]  = useState(false);
     const [showPopup,    setShowPopup]    = useState(false); // 100% popup
+    const [countdown,    setCountdown]    = useState(null); // 5s auto-advance
+    const countdownRef   = useRef(null);
     const [error,        setError]        = useState('');
     const [pageLoading,  setPageLoading]  = useState(true);
 
@@ -88,7 +90,36 @@ export default function VideoPlayer({ videoIdProp, courseIdProp, studentIdProp, 
         setIsPlaying(false);
         stopTracking(videoRef.current);
         setShowPopup(true); // ← popup only on 100%
+
+        // Start 5s countdown for auto-advance
+        if (onNextLecture) {
+            setCountdown(5);
+            countdownRef.current = setInterval(() => {
+                setCountdown(prev => {
+                    if (prev <= 1) {
+                        clearInterval(countdownRef.current);
+                        setShowPopup(false);
+                        setCountdown(null);
+                        onNextLecture(); // advance to next lecture
+                        return null;
+                    }
+                    return prev - 1;
+                });
+            }, 1000);
+        }
     };
+
+    const handleContinueNow = () => {
+        if (countdownRef.current) clearInterval(countdownRef.current);
+        setShowPopup(false);
+        setCountdown(null);
+        if (onNextLecture) onNextLecture();
+    };
+
+    const handleStayHere = () => {
+        if (countdownRef.current) clearInterval(countdownRef.current);
+        setShowPopup(false);
+        setCountdown(null);    };
 
     const handleWaiting = () => setIsBuffering(true);
     const handleCanPlay = () => setIsBuffering(false);
@@ -186,20 +217,33 @@ export default function VideoPlayer({ videoIdProp, courseIdProp, studentIdProp, 
                         <div style={styles.spinner} />
                     </div>
                 )}
-
-                {/* 100% Completion Popup */}
+                {/* 100% Completion Popup with countdown */}
                 {showPopup && (
                     <div style={styles.popupOverlay}>
                         <div style={styles.popup}>
                             <div style={styles.popupEmoji}>🎉</div>
                             <h3 style={styles.popupTitle}>Lecture Complete!</h3>
-                            <p style={styles.popupText}>You have finished this lecture.</p>
-                            <button
-                                onClick={() => setShowPopup(false)}
-                                style={styles.popupBtn}
-                            >
-                                Continue
-                            </button>
+                            <p style={styles.popupText}>You have finished this lecture.</p>                
+
+                            {onNextLecture && countdown !== null ? (
+                                <>
+                                    <p style={styles.countdownText}>
+                                        Next lecture in <strong style={{ color: '#7c3aed' }}>{countdown}s</strong>
+                                    </p>
+                                    <div style={styles.popupBtns}>
+                                        <button onClick={handleContinueNow} style={styles.popupBtn}>
+                                            Next Now →
+                                        </button>
+                                        <button onClick={handleStayHere} style={styles.popupBtnOutline}>
+                                            Stay Here
+                                        </button>
+                                    </div>
+                                </>
+                            ) : (
+                                <button onClick={handleStayHere} style={styles.popupBtn}>
+                                    Continue
+                                </button>
+                            )}
                         </div>
                     </div>
                 )}
@@ -288,5 +332,8 @@ const styles = {
     select:       { backgroundColor: '#1f2937', color: '#f9fafb', border: '1px solid #4b5563', borderRadius: '6px', padding: '4px 8px', fontSize: '12px', cursor: 'pointer' },
     shortcuts:    { marginTop: '10px', fontSize: '11px', color: '#6b7280', display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' },
     resumeNote:   { color: '#9ca3af', fontSize: '12px', marginTop: '8px' },
-    center:       { display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px', backgroundColor: '#111827' },
+    center:        { display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px', backgroundColor: '#111827' },
+    countdownText: { color: '#9ca3af', fontSize: '14px', margin: '0 0 1rem' },
+    popupBtns:     { display: 'flex', gap: '8px', justifyContent: 'center' },
+    popupBtnOutline: { padding: '10px 20px', backgroundColor: 'transparent', color: '#9ca3af', border: '1px solid #4b5563', borderRadius: '8px', fontSize: '14px', fontWeight: '600', cursor: 'pointer' },
 };
