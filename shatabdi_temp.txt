@@ -76,3 +76,27 @@ video.routes.js  →  student-backend/src/routes/ এ রাখো
 
 git add student-backend/src/routes/course.routes.js student-backend/src/index.js
 git commit -m "feat(course): register GET /api/courses/:courseId/lectures route"
+
+<video
+    crossOrigin="anonymous"   ← এটা আছে?
+    ...
+/>
+আর Cloudinary Dashboard-এ গিয়ে:
+Settings → Security → Allowed fetch domains
+→ localhost:5173 add করো
+
+
+-- psql-এ run করো
+psql -U postgres -d progress_tracker
+UPDATE video_progress 
+SET is_completed = false, 
+    watch_position = 0, 
+    completion_percent = 0
+WHERE student_id = 2;
+
+UPDATE course_progress
+SET completion_percentage = 0,
+    completed_lectures = 0
+WHERE student_id = 2;
+
+update seed.sql file

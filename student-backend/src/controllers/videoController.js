@@ -87,24 +87,30 @@ const saveWatchPosition = async (req, res) => {
     }
 
     try {
-        // Calculate completion percent
         const completionPercent = Math.min(
             parseFloat(((position / duration) * 100).toFixed(2)),
             100
         );
 
-        // Upsert — insert if new, update if exists
+        // 80% হলে is_completed = true করো
+        const isCompleted = completionPercent >= 80;
+
         await pool.query(
             `INSERT INTO video_progress
                 (student_id, lecture_id, watch_position, completion_percent, is_completed, last_updated)
-             VALUES ($1, $2, $3, $4, FALSE, NOW())
-             ON CONFLICT (student_id, lecture_id)
-             DO UPDATE SET
+            VALUES ($1, $2, $3, $4, $5, NOW())
+            ON CONFLICT (student_id, lecture_id)
+            DO UPDATE SET
                 watch_position     = EXCLUDED.watch_position,
                 completion_percent = EXCLUDED.completion_percent,
+                is_completed       = CASE 
+                                    WHEN video_progress.is_completed = true THEN true 
+                                    ELSE EXCLUDED.is_completed 
+                                    END,
                 last_updated       = NOW()`,
-            [studentId, lectureId, position, completionPercent]
-        );
+            [studentId, lectureId, position, completionPercent, isCompleted]
+        );        
+
 
         res.status(200).json({
             message:            'Position saved',
