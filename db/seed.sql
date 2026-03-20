@@ -89,41 +89,41 @@ INSERT INTO video_lectures (section_id, title, video_url, subtitle_url, duration
 -- ============================================
 -- 5. MATERIALS
 -- Files stored in Cloudinary under
--- ISD-Feature-Implementation/resources/
+-- FINAL_ISD_PROJECT/resources/
 -- Replace public_id with full URL pattern:
--- https://res.cloudinary.com/dobnouuwt/raw/upload/<public_id>
+-- <public_id>
 -- ============================================
 INSERT INTO materials (section_id, title, file_url, file_type, download_allowed) VALUES
 (1, 'Chapter 2 Lecture Slides',
-    'https://res.cloudinary.com/dobnouuwt/raw/upload/ISD-Feature-Implementation/resources/Chapter_204_20-_20MAC-1.pdf',
+    'FINAL_ISD_PROJECT/resources/Chapter_204_20-_20MAC-1.pdf',
     'pdf', TRUE),
 
 (2, 'Chapter 5 Slides',
-    'https://res.cloudinary.com/dobnouuwt/raw/upload/ISD-Feature-Implementation/resources/chapter5.ppt',
+    'FINAL_ISD_PROJECT/resources/chapter5.ppt',
     'ppt', TRUE),
 
 (2, 'Chapter 6 Slides',
-    'https://res.cloudinary.com/dobnouuwt/raw/upload/ISD-Feature-Implementation/resources/chapter6.ppt',
+    'FINAL_ISD_PROJECT/resources/chapter6.ppt',
     'ppt', TRUE),
 
 (3, 'Congestion Control Notes',
-    'https://res.cloudinary.com/dobnouuwt/raw/upload/ISD-Feature-Implementation/resources/Congestion_control_-_Peterson.pdf',
+    'FINAL_ISD_PROJECT/resources/Congestion_control_-_Peterson.pdf',
     'pdf', TRUE),
 
 (4, 'Lecture Notes: TCP',
-    'https://res.cloudinary.com/dobnouuwt/raw/upload/ISD-Feature-Implementation/resources/Lecture-TCP.pdf',
+    'FINAL_ISD_PROJECT/resources/Lecture-TCP.pdf',
     'pdf', TRUE),
 
 (4, 'Lecture Notes: TCP Connections',
-    'https://res.cloudinary.com/dobnouuwt/raw/upload/ISD-Feature-Implementation/resources/Lecture-TCPCongestionControl.pdf',
+    'FINAL_ISD_PROJECT/resources/Lecture-TCPCongestionControl.pdf',
     'pdf', TRUE),
 
 (4, 'Course Material Pack (ZIP)',
-    'https://res.cloudinary.com/dobnouuwt/raw/upload/ISD-Feature-Implementation/resources/material.zip',
+    'FINAL_ISD_PROJECT/resources/material.zip',
     'zip', TRUE),
 
 (5, 'Textbook Reference: Peterson & Davie',
-    'https://res.cloudinary.com/dobnouuwt/raw/upload/ISD-Feature-Implementation/resources/TCP_-_Peterson.pdf',
+    'FINAL_ISD_PROJECT/resources/TCP_-_Peterson.pdf',
     'pdf', FALSE);
 
 -- ============================================
