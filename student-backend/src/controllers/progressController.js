@@ -93,4 +93,25 @@ const getEnrolledCourses = async(req,res)=>{
     }
 };
 
-module.exports = { getCourseProgress, getLessonProgress, MarkLessonComplete, getEnrolledCourses };
+
+const getWeeklyProgress = async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        const result = await db.query(
+            `SELECT DATE(last_updated) as day, COUNT(*) as completed
+             FROM video_progress 
+             WHERE student_id = $1 AND is_completed = true 
+             AND last_updated >= NOW() - INTERVAL '7 days'
+             GROUP BY DATE(last_updated)
+             ORDER BY day`,
+            [userId]
+        );
+
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Error fetching weekly progress:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};
+module.exports = { getCourseProgress, getLessonProgress, MarkLessonComplete, getEnrolledCourses ,getWeeklyProgress};
