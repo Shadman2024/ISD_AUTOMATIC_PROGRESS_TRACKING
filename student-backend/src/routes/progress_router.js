@@ -6,6 +6,7 @@ const progressController = require('../controllers/progressController');
 router.use(verifyToken);
 
 router.get('/enrolled/courses', progressController.getEnrolledCourses);
+router.get('/weekly/stats', progressController.getWeeklyProgress);
 router.get('/lectures/:courseId',progressController.getLessonProgress);
 router.get('/:courseId',progressController.getCourseProgress);
 
