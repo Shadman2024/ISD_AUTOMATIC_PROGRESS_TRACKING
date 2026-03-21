@@ -63,7 +63,7 @@ export default function WeeklyProgress() {
     return (
         <div style={{
             backgroundColor: '#fce4ff', borderRadius: '16px',
-            padding: '24px', border: '1px solid #e5e7eb',
+            padding: '24px', border: '1.5px solid #1f345c',
         }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
                 <div>
