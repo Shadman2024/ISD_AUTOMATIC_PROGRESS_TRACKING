@@ -64,7 +64,7 @@ export default function CourseContentPage() {
             } catch (err) {
                 console.error('Could not load lectures:', err.message);
             }
-            // Load per-lecture progress (completion %)
+           
             try {
                 const progRes = await studentAPI.get(`/progress/lectures/${courseId}`);
                 const progMap = {};
@@ -75,7 +75,7 @@ export default function CourseContentPage() {
                     };
                 });
                 setLectureProgress(progMap);
-            } catch { /* Arpita's API — ok if not ready */ }
+            } catch { }
 
             try {
                 const progressRes = await studentAPI.get(`/progress/lectures/${courseId}`);
@@ -86,12 +86,18 @@ export default function CourseContentPage() {
                 );
                 setCompletedIds(completed);
             } catch {
-                // Arpita's API not ready yet — that's ok
+               
             }
 
             try {
-                const cpRes = await studentAPI.get(`/progress/${courseId}`);
-                setCourseProgress(cpRes.data.completion_percentage || 0);
+                setTimeout(() => {
+                    studentAPI.get(`/progress/${courseId}`)
+                        .then(res => {
+                            const pct = parseFloat(res.data.completion_percentage || 0);
+                            setCourseProgress(pct);
+                        })
+                        .catch(() => { });
+                }, 500);
             } catch { /* ok */ }
 
             setLoading(false);
@@ -100,21 +106,49 @@ export default function CourseContentPage() {
         if (courseId) fetchData();
     }, [courseId]);
 
-    // ── Called by VideoPlayer when a lecture completes (80% reached) ──────────
+    // Live refresh — sidebar + navbar auto update
+useEffect(() => {
+    if (!courseId) return;
+    const interval = setInterval(async () => {
+        try {
+            const progRes = await studentAPI.get(`/progress/lectures/${courseId}`);
+            const progMap = {};
+            const done = new Set();
+            (progRes.data.lectures || []).forEach(l => {
+                progMap[l.lecture_id] = {
+                    percent: l.completion_percent || 0,
+                    is_completed: l.is_completed || false,
+                };
+                if (l.is_completed) done.add(l.lecture_id);
+            });
+            setLectureProgress(progMap);
+            setCompletedIds(done);
+
+            const cpRes = await studentAPI.get(`/progress/${courseId}`);
+            setCourseProgress(parseFloat(cpRes.data.completion_percentage || 0));
+        } catch {}
+    }, 10000);
+    return () => clearInterval(interval);
+}, [courseId]);
+
     const handleLectureComplete = useCallback((videoId) => {
-        // Instantly update sidebar checkmark
-        setCompletedIds(prev => new Set([...prev, parseInt(videoId)]));
-
-        // Refresh course % from Arpita's API
+    setCompletedIds(prev => new Set([...prev, parseInt(videoId)]));
+    
+    // Wait for backend to finish, then fetch fresh progress
+    setTimeout(() => {
         studentAPI.get(`/progress/${courseId}`)
-            .then(res => setCourseProgress(res.data.completion_percentage || 0))
-            .catch(() => { });
+            .then(res => {
+                const pct = parseFloat(res.data.completion_percentage || 0);
+                console.log('Updated progress:', pct);
+                setCourseProgress(pct);
+            })
+            .catch(() => {});
+    }, 500);
 
-        // Start auto-advance countdown if not last lecture
-        if (selectedIdx < lectures.length - 1) {
-            startCountdown();
-        }
-    }, [selectedIdx, lectures.length, courseId]);
+    if (selectedIdx < lectures.length - 1) {
+        startCountdown();
+    }
+}, [selectedIdx, lectures.length, courseId]);
 
     // ── Auto-advance countdown (5s) ───────────────────────────────────────────
     const startCountdown = useCallback(() => {

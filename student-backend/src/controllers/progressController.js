@@ -45,39 +45,59 @@ const getLessonProgress = async (req, res) => {
 
 };
 
-
 const MarkLessonComplete = async (req, res) => {
-
     try {
-        const { lectureId, courseId, percentage } = req.body;
+        const { lectureId, courseId } = req.body;
         const userId = req.user.id;
-
-        await db.query(
-            `UPDATE video_progress SET is_completed = true,completion_percent = 100.00 
-            WHERE student_id = $1 AND lecture_id = $2`,
-            [userId, lectureId, percentage]
-        );
-        const check = await db.query(
-            'SELECT is_completed FROM video_progress WHERE student_id = $1 AND lecture_id = $2',
-            [userId, lectureId]
-        );
-
-        if (check.rows[0]?.is_completed) {
-            return res.json({ message: 'Already completed' });
-        }
-
-        await db.query(
-            `UPDATE course_progress SET completed_lectures = completed_lectures + 1,
-            completion_percentage = ((completed_lectures + 1)::float / total_lectures) * 100
-            WHERE student_id = $1 AND course_id = $2`,
+ 
+        console.log('MarkLessonComplete called:', { userId, lectureId, courseId });
+ 
+     
+        const countResult = await db.query(
+            `SELECT COUNT(*) as done
+             FROM video_progress vp
+             JOIN video_lectures vl ON vp.lecture_id = vl.id
+             JOIN sections s ON vl.section_id = s.id
+             WHERE vp.student_id = $1 AND s.course_id = $2 AND vp.is_completed = true`,
             [userId, courseId]
         );
-        res.json({ message: 'Lesson marked as complete' });
+ 
+        const completedCount = parseInt(countResult.rows[0].done);
+ 
+        
+        const totalResult = await db.query(
+            'SELECT total_lectures FROM course_progress WHERE student_id = $1 AND course_id = $2',
+            [userId, courseId]
+        );
+ 
+        const totalLectures = totalResult.rows[0]?.total_lectures || 1;
+        const newPercentage = (completedCount / totalLectures) * 100;
+ 
+        console.log('Completed:', completedCount, '/', totalLectures, '=', newPercentage.toFixed(2) + '%');
+ 
+       
+        await db.query(
+            `UPDATE course_progress 
+             SET completed_lectures = $3,
+                 completion_percentage = $4,
+                 last_accessed = NOW()
+             WHERE student_id = $1 AND course_id = $2`,
+            [userId, courseId, completedCount, newPercentage]
+        );
+ 
+        console.log('Course progress updated!');
+ 
+        res.json({
+            message: 'Lesson marked as complete',
+            completion_percentage: newPercentage,
+            completed_lectures: completedCount,
+            total_lectures: totalLectures,
+        });
     } catch (error) {
         console.error('Error marking lesson as complete:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
-}
+};
 
 
 const getEnrolledCourses = async (req, res) => {
@@ -107,7 +127,7 @@ const getWeeklyProgress = async (req, res) => {
         const userId = req.user.id;
 
         const result = await db.query(
-            `SELECT DATE(last_updated) as day, COUNT(*) as completed
+            `SELECT DATE(last_updated)::text as day, COUNT(*) as completed
              FROM video_progress 
              WHERE student_id = $1 AND is_completed = true 
              AND last_updated >= NOW() - INTERVAL '7 days'
