@@ -78,7 +78,7 @@ export default function LearningStreak() {
 
     return (
         <div style={{
-            backgroundColor: '#dfd4da', borderRadius: '16px',
+            backgroundColor: '#dfd4da', borderRadius: '16px',height:'230px',
             border: '1.5px solid #0f3683', padding: '24px',
         }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>

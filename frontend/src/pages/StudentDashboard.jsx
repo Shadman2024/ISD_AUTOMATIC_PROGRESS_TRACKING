@@ -6,12 +6,28 @@ import Footer1 from '../components/Footer1';
 import Footer2 from '../components/Footer2';
 import LearningStreak from '../components/LearningStreak';
 import WeeklyProgress from '../components/WeeklyProgress';
+import CourseCarousel from '../components/CourseCarousel';
+
+const float = {
+    onMouseEnter: (e) => { e.currentTarget.style.transform = 'translateY(-8px) scale(1.02)'; e.currentTarget.style.boxShadow = '0 20px 40px rgba(0,0,0,0.12)'; },
+    onMouseLeave: (e) => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = ''; },
+};
 
 export default function StudentDashboard() {
     const navigate = useNavigate();
     const [courses, setCourses] = useState([]);
     const [loading, setLoading] = useState(true);
     const user = JSON.parse(localStorage.getItem('user'));
+
+    const [bannerIdx, setBannerIdx] = useState(0);
+
+   const bannerImages = [
+    'https://images.unsplash.com/photo-1501504905252-473c47e087f8?w=1400&q=90',
+    'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1400&q=90',
+    
+    'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1400&q=90',
+    'https://images.unsplash.com/photo-1488190211105-8b0e65b80b4e?w=1400&q=90',
+];
 
     useEffect(() => {
         const fetchCourses = async () => {
@@ -26,6 +42,14 @@ export default function StudentDashboard() {
         };
         fetchCourses();
     }, []);
+
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setBannerIdx(prev => (prev + 1) % bannerImages.length);
+        }, 1800);
+        return () => clearInterval(timer);
+    }, []);
+
 
     const completedCount = courses.filter(c => parseFloat(c.completion_percentage) >= 100).length;
     const inProgressCount = courses.filter(c => parseFloat(c.completion_percentage) > 0 && parseFloat(c.completion_percentage) < 100).length;
@@ -78,44 +102,100 @@ export default function StudentDashboard() {
                 </div>
 
                 {/* Hero Banner */}
-                <div style={{
-                    backgroundImage: 'url(https://t3.ftcdn.net/jpg/06/36/82/78/360_F_636827881_ttVgOQbowRIKW4gaeQHnEjNM45eLeY5v.jpg)',
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    borderRadius: '12px', marginBottom: '36px',
-                    position: 'relative', overflow: 'hidden', height: '500px',
-                    display: 'flex', alignItems: 'center',
-                }}>
-                    <div style={{
-                        backgroundColor: 'rgba(28,29,31,0.88)', borderRadius: '8px',
-                        padding: '32px 36px', marginLeft: '48px', maxWidth: '380px',
-                        position: 'relative', zIndex: 1,
-                    }}>
-                        <h2 style={{
-                            fontSize: '28px', fontWeight: 700, color: '#fff',
-                            margin: '0 0 12px', lineHeight: '1.2',
-                        }}>Move forward on your goals</h2>
-                        <p style={{
-                            fontSize: '14px', color: 'rgba(255,255,255,0.75)',
-                            margin: '0 0 20px', lineHeight: '1.6',
-                        }}>
-                            Track your progress across all courses. Complete lectures to unlock milestones.
-                        </p>
-                        {lastAccessed && (
-                            <button
-                                onClick={() => navigate(`/student/course/${lastAccessed.id}`)}
-                                style={{
-                                    padding: '12px 24px', backgroundColor: '#fff',
-                                    color: '#1c1d1f', border: 'none', fontSize: '15px',
-                                    fontWeight: 700, cursor: 'pointer', borderRadius: '4px',
-                                }}
-                            >
-                                Continue learning
-                            </button>
-                        )}
-                    </div>
-                </div>
+                {/* Hero Banner Slider */}
+<div style={{
+    borderRadius: '12px', marginBottom: '36px',
+    position: 'relative', overflow: 'hidden', height: '500px',
+    cursor: 'default',
+    transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+}}
+    onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.01)'; e.currentTarget.style.boxShadow = '0 20px 40px rgba(0,0,0,0.15)'; }}
+    onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = ''; }}
+>
+    <div style={{
+        display: 'flex', height: '100%',
+        transform: `translateX(-${bannerIdx * 100}%)`,
+        transition: 'transform 0.6s ease-in-out',
+    }}>
+        {bannerImages.map((img, i) => (
+            <div key={i} style={{
+                minWidth: '100%', height: '100%',
+                backgroundImage: `url(${img})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+            }} />
+        ))}
+    </div>
 
+    <div style={{
+        position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+        background: 'linear-gradient(90deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.1) 60%, transparent 100%)',
+    }} />
+
+    <div style={{
+        position: 'absolute', top: '50%', left: '48px',
+        transform: 'translateY(-50%)',
+        backgroundColor: 'rgba(28,29,31,0.88)', borderRadius: '8px',
+        padding: '32px 36px', maxWidth: '380px', zIndex: 2,
+    }}>
+        <h2 style={{
+            fontSize: '28px', fontWeight: 700, color: '#fff',
+            margin: '0 0 12px', lineHeight: '1.2',
+        }}>Move forward on your goals</h2>
+        <p style={{
+            fontSize: '14px', color: 'rgba(255,255,255,0.75)',
+            margin: '0 0 20px', lineHeight: '1.6',
+        }}>Track your progress across all courses. Complete lectures to unlock milestones.</p>
+        {lastAccessed && (
+            <button onClick={() => navigate(`/student/course/${lastAccessed.id}`)}
+                style={{
+                    padding: '12px 24px', backgroundColor: '#fff',
+                    color: '#1c1d1f', border: 'none', fontSize: '15px',
+                    fontWeight: 700, cursor: 'pointer', borderRadius: '4px',
+                }}>Continue learning</button>
+        )}
+    </div>
+
+    <div onClick={() => setBannerIdx(prev => prev === 0 ? bannerImages.length - 1 : prev - 1)}
+        style={{
+            position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)',
+            width: '42px', height: '42px', borderRadius: '50%',
+            backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex',
+            alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', zIndex: 3,
+        }}>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3"><polyline points="15 18 9 12 15 6"/></svg>
+    </div>
+
+    <div onClick={() => setBannerIdx(prev => (prev + 1) % bannerImages.length)}
+        style={{
+            position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)',
+            width: '42px', height: '42px', borderRadius: '50%',
+            backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex',
+            alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', zIndex: 3,
+        }}>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+
+    <div style={{
+        position: 'absolute', bottom: '16px', left: '50%',
+        transform: 'translateX(-50%)', display: 'flex', gap: '8px', zIndex: 3,
+    }}>
+        {bannerImages.map((_, i) => (
+            <div key={i} onClick={() => setBannerIdx(i)}
+                style={{
+                    width: i === bannerIdx ? '24px' : '8px', height: '8px',
+                    borderRadius: '4px',
+                    backgroundColor: i === bannerIdx ? '#fff' : 'rgba(255,255,255,0.5)',
+                    cursor: 'pointer', transition: 'all 0.3s ease',
+                }} />
+        ))}
+    </div>
+</div>
+                   
+
+                  
                 {/* Stats */}
                 <div style={{
                     display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)',
@@ -130,11 +210,11 @@ export default function StudentDashboard() {
                         <div key={i} style={{
                             padding: '24px', borderRadius: '12px',
                             backgroundColor: '#ded2e4', border: '1.5px solid #91209b',
-                            transition: 'transform 0.15s, box-shadow 0.15s',
+                            transition: 'transform 0.3s ease, box-shadow 0.3s ease',
                             cursor: 'default',
                         }}
-                            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 20px rgba(0,0,0,0.06)'; }}
-                            onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = ''; }}
+                            onMouseEnter={float.onMouseEnter}
+                            onMouseLeave={float.onMouseLeave}
                         >
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                                 <p style={{
@@ -150,14 +230,25 @@ export default function StudentDashboard() {
                     ))}
                 </div>
 
-                {/* Learning Streak + Weekly Progress — side by side */}
+                {/* Learning Streak + Weekly Progress */}
                 <div style={{
                     display: 'grid', gridTemplateColumns: '1fr 1fr',
-                    gap: '20px', marginBottom: '40px',
+                    gap: '30px', marginBottom: '40px',
                 }}>
-                    <LearningStreak />
-                    <WeeklyProgress courses={courses} />
+                    <div style={{
+                        transition: 'transform 0.3s ease, box-shadow 0.3s ease', borderRadius: '16px', height: '100%'
+                    }}
+                        onMouseEnter={float.onMouseEnter} onMouseLeave={float.onMouseLeave}>
+                        <LearningStreak />
+                    </div>
+                    <div style={{ transition: 'transform 0.3s ease, box-shadow 0.3s ease', borderRadius: '16px' }}
+                        onMouseEnter={float.onMouseEnter} onMouseLeave={float.onMouseLeave}>
+                        <WeeklyProgress courses={courses} />
+                    </div>
                 </div>
+
+                {/* Carousel */}
+                <CourseCarousel courses={courses} />
 
                 {/* Let's start learning */}
                 <h2 style={{
@@ -184,11 +275,13 @@ export default function StudentDashboard() {
                                 style={{
                                     border: '1px solid #e5e7eb', overflow: 'hidden',
                                     borderRadius: '12px', backgroundColor: '#fff',
-                                    cursor: 'pointer', transition: 'transform 0.2s, box-shadow 0.2s',
+                                    cursor: 'pointer',
+                                    transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                                    position: 'relative',
                                 }}
                                 onClick={() => navigate(`/student/course/${course.id}`)}
-                                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 12px 28px rgba(0,0,0,0.1)'; }}
-                                onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = ''; }}
+                                onMouseEnter={float.onMouseEnter}
+                                onMouseLeave={float.onMouseLeave}
                             >
                                 <div style={{
                                     height: '140px',
