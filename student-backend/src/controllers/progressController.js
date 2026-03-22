@@ -127,7 +127,7 @@ const getWeeklyProgress = async (req, res) => {
         const userId = req.user.id;
 
         const result = await db.query(
-            `SELECT DATE(last_updated) as day, COUNT(*) as completed
+            `SELECT DATE(last_updated)::text as day, COUNT(*) as completed
              FROM video_progress 
              WHERE student_id = $1 AND is_completed = true 
              AND last_updated >= NOW() - INTERVAL '7 days'
