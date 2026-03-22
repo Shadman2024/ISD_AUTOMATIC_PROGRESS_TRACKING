@@ -127,7 +127,7 @@ useEffect(() => {
             const cpRes = await studentAPI.get(`/progress/${courseId}`);
             setCourseProgress(parseFloat(cpRes.data.completion_percentage || 0));
         } catch {}
-    }, 10000);
+    }, 500);
     return () => clearInterval(interval);
 }, [courseId]);
 
