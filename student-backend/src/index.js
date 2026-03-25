@@ -40,6 +40,12 @@ app.get('/', (req, res) => {
 
 
 const PORT = process.env.STUDENT_PORT || 5000;
-app.listen(PORT, () => {
-    console.log(`Student Backend running on port ${PORT}`);
-});
+// app.listen(PORT, () => {
+//     console.log(`Student Backend running on port ${PORT}`);
+// });
+if (process.env.NODE_ENV !== 'test') {
+    app.listen(PORT, () => {
+        console.log(`Student Backend running on port ${PORT}`);
+    });
+}
+module.exports = app;
