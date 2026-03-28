@@ -8,10 +8,10 @@
 | Student ID | Name                       | Role                        |
 |------------|----------------------------|-----------------------------|
 | 2105123    | Shatabdi Dutta Chowdhury   | Student UI + Video API + CI/CD for videos   |
-| 2105124    | Md. Shadman Abid            | Instructor DevOps + Student Progress UI |
-| 2105125    | Md. Yousuf Niaz             | Instructor Analytics UI + API |
+| 2105124    | Md. Shadman Abid            | — |
+| 2105125    | Md. Yousuf Niaz             | Instructor Analytics backend |
 | 2105137    | Arpita Dhar                 | Student Progress API + DB Models |
-| 2105140    | Nusrat Jahan Tamanna        | Threshold Service + Notification API |
+| 2105140    | Nusrat Jahan Tamanna        | Instructor Analytics UI |
 | 2105147    | Tasnimzaman Tanmi           | DB Schema + Project Structure + Auth |
 
 ---
@@ -34,15 +34,15 @@
 ISD_AUTOMATIC_PROGRESS_TRACKING/
 │
 ├── frontend/
-│   ├── index.html                  (Tanmi)
-│   ├── vite.config.js              (Tanmi)
-│   ├── eslint.config.js            (Tanmi)
-│   ├── package.json                (Tanmi)
-│   ├── package-lock.json           (Tanmi)
-│   ├── .gitignore                  (Tanmi)
+│   ├── index.html
+│   ├── vite.config.js
+│   ├── eslint.config.js
+│   ├── package.json
+│   ├── package-lock.json
+│   ├── .gitignore
 │   └── src/
 │       ├── App.jsx                        (Tanmi + Shatabdi + Arpita adds routes)
-│       ├── main.jsx                       (Tanmi)
+│       ├── main.jsx
 │       ├── pages/
 │       │   ├── Login.jsx                  (Tanmi → Arpita redesigned)
 │       │   ├── Register.jsx               (Tanmi)
@@ -51,6 +51,9 @@ ISD_AUTOMATIC_PROGRESS_TRACKING/
 │       │   ├── VideoPlayer.jsx            (Shatabdi)
 │       │   |── CourseContentPage.jsx      (Shatabdi)
         |   ├── HomePage.jsx                (Arpita)
+│       │   ├── PerformanceOverview.jsx    (Tamanna)
+│       │   ├── PerformanceStudents.jsx    (Tamanna)
+│       │   └── PerformanceEngagement.jsx  (Tamanna)
 
 │       ├── components/
 │       │   ├── Navbar.jsx                 (Arpita)
@@ -66,11 +69,12 @@ ISD_AUTOMATIC_PROGRESS_TRACKING/
 │       ├── hooks/
 │       │   └── useVideoProgress.js        (Shatabdi)
 │       └── services/
-│           └── api.js                     (Tanmi)     
+│           ├── api.js                     (Tanmi)
+│           └── instructorApi.js           (Tamanna)
 │
 ├── student-backend/
-│   ├── package.json                       (Tanmi)
-│   ├── package-lock.json                  (Tanmi)
+│   ├── package.json
+│   ├── package-lock.json
 │   ├── .gitignore
 │   └── src/
 │       ├── index.js                       (Tanmi + Shatabdi routes added)
@@ -93,13 +97,26 @@ ISD_AUTOMATIC_PROGRESS_TRACKING/
 │           ├── upload.routes.js           (Shatabdi)
 │           └── progress_router.js         (Arpita)
 │
+├── instructor-backend/
+│   ├── package.json
+│   ├── package-lock.json
+│   ├── Dockerfile
+│   └── src/
+│       ├── app.js                         (Niaz)
+│       ├── config/
+│       │   └── db.js                      (Niaz)
+│       ├── controllers/
+│       │   └── instructor.js              (Niaz)
+│       └── routes/
+│           └── instructor.js              (Niaz)
+│
 ├── db/
 │   ├── student-schema.sql                 (Tanmi + Shatabdi: subtitle_url)
 │   ├── instructor-schema.sql              (Tanmi)
 │   └── seed.sql                           (Tanmi + Shatabdi: real datas)
 │
-├── .gitignore                             (Tanmi)
-├── .env.example                           (Tanmi)
+├── .gitignore
+├── .env.example
 └── README.md
 ```
 
@@ -339,8 +356,8 @@ Each member works on their own branch and opens a PR to `main`.
 | `shatabdi/ux-improvements`    | Shatabdi |
 | `student/progress-api`        | Arpita   |
 | `student/devops`              | Shadman  |
-| `instructor/analytics-ui`     | Niaz     |
-| `instructor/threshold-api`    | Tamanna  |
+| `instructor/analytics-backend`| Niaz     |
+| `instructor/analytics-ui`     | Tamanna  |
 | `instructor/devops`           | Shadman  |
 
 ---
@@ -350,8 +367,8 @@ Each member works on their own branch and opens a PR to `main`.
 | Member   | Frontend | Backend | DB / Config |
 |----------|----------|---------|-------------|
 | Tanmi    | Login.jsx, Register.jsx, App.jsx, api.js | index.js, db.js, authController.js, auth.routes.js | student-schema.sql, seed.sql, .env.example |
-| Shatabdi | VideoPlayer.jsx, CourseContentPage.jsx, ProgressBar.jsx, CircularProgress.jsx, useVideoProgress.js | auth.middleware.js, videoController.js, courseController.js, uploadController.js, upload.middleware.js, cloudinary.js, video/course/upload routes | subtitle_url in schema, Cloudinary URLs in seed.sql, GitHub Actions CI/CD, unit tests |
+| Shatabdi | VideoPlayer.jsx, CourseContentPage.jsx, ProgressBar.jsx, CircularProgress.jsx, useVideoProgress.js | auth.middleware.js, videoController.js, courseController.js, uploadController.js, upload.middleware.js, cloudinary.js | subtitle_url in schema, Cloudinary URLs in seed.sql, GitHub Actions CI/CD, unit tests |
 | Arpita   | StudentDashboard.jsx, MyLearning.jsx, HomePage.jsx, Login.jsx (redesign), Navbar.jsx, CourseNavbar.jsx, CourseMilestones.jsx, CourseCarousel.jsx, LearningStreak.jsx, WeeklyProgress.jsx, Footer1.jsx, Footer2.jsx, api.js (added) | progressController.js, progress_router.js | — |
 | Shadman  | — | — | — |
-| Niaz     | — | — | — |
-| Tamanna  | — | — | — |
+| Niaz     | — | instructor-backend/src/app.js, instructor-backend/src/config/db.js, instructor-backend/src/controllers/instructor.js, instructor-backend/src/routes/instructor.js | Instructor analytics backend |
+| Tamanna  | PerformanceOverview.jsx, PerformanceStudents.jsx, PerformanceEngagement.jsx, instructorApi.js, App.jsx (instructor routes added) | — | — |
