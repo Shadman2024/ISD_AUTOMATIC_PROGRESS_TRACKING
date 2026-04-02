@@ -196,6 +196,13 @@ npm run dev
 ```
 Backend runs at: `http://localhost:5000`
 
+### Run Instructor backend 
+``` bash
+    cd instructor-backend 
+    npm run dev
+```
+Backend runs at: `http://localhost:5001`
+
 ### Step 6 — Run Frontend
 Open a new terminal:
 ```bash

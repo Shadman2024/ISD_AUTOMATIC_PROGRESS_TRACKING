@@ -5,7 +5,9 @@
  *   isCompleted - shows full green circle with checkmark
  *   size        - diameter in px (default 28)
  */
+
 export default function CircularProgress({ percent = 0, isCompleted = false, size = 28 }) {
+    
     const radius      = (size - 4) / 2;
     const circumference = 2 * Math.PI * radius;
     const filled      = isCompleted ? circumference : (percent / 100) * circumference;

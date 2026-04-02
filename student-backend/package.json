@@ -5,7 +5,7 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
-    "test": "jest --testEnvironment node --forceExit"
+    "test": "jest"
   },
   "keywords": [],
   "author": "",

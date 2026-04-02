@@ -14,7 +14,7 @@ const IMAGES = [
 
 function Card({ course, isHovered, onHover, onLeave }) {
     const navigate = useNavigate();
-
+    
     return (
         <div
             style={{
