@@ -22,7 +22,7 @@ app.use(express.json());
 app.use('/api/instructor', instructorRoutes);
 
 // Health Check
-app.get('/api/health', (req, res) => {
+app.get('/', (req, res) => {
   res.json({ status: 'Instructor API is running' });
 });
 
