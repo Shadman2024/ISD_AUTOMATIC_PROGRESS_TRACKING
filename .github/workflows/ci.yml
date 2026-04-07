@@ -1,3 +1,129 @@
+
+# name: Student Backend CI
+
+# on:
+#   push:
+#     branches: [ main, shatabdi/* ]
+#   pull_request:
+#     branches: [ main ]
+
+# jobs:
+#   lint-and-test:
+#     runs-on: ubuntu-latest
+#     services:
+#       postgres:
+#         image: postgres:16
+#         env:
+#           POSTGRES_USER: postgres
+#           POSTGRES_PASSWORD: postgres
+#           POSTGRES_DB: progress_tracker_test
+#         ports:
+#           - 5432:5432
+#         options: >-
+#           --health-cmd pg_isready
+#           --health-interval 10s
+#           --health-timeout 5s
+#           --health-retries 5
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v4
+
+#       - name: Setup Node.js
+#         uses: actions/setup-node@v4
+#         with:
+#           node-version: '22'
+#           cache: 'npm'
+#           cache-dependency-path: student-backend/package-lock.json
+
+#       - name: Install dependencies
+#         working-directory: student-backend
+#         run: npm install
+
+#       - name: Setup test database
+#         env:
+#           PGPASSWORD: postgres
+#         run: |
+#           psql -h localhost -U postgres -d progress_tracker_test -f db/student-schema.sql
+
+#       - name: Run unit tests  
+#         working-directory: student-backend
+#         env:
+#           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/progress_tracker_test
+#           JWT_SECRET: test_secret_key
+#           JWT_EXPIRES_IN: 7d
+#           NODE_ENV: test
+#         run: npm test
+  
+#   frontend-check:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v4
+
+#       - name: Setup Node.js
+#         uses: actions/setup-node@v4
+#         with:
+#           node-version: '22'
+#           cache: 'npm'
+#           cache-dependency-path: frontend/package-lock.json
+
+#       - name: Install dependencies
+#         working-directory: frontend
+#         run: npm install
+
+#       - name: Run tests
+#         working-directory: frontend
+#         run: npm run test
+
+#       - name: Build check
+#         working-directory: frontend
+#         env:
+#          VITE_STUDENT_API_URL: ${{ github.ref == 'refs/heads/main' && secrets.PROD_API_URL || 'http://localhost:5000/api' }}
+#         run: npm run build
+                   
+#       - name: upload build artifact
+#         uses: actions/upload-artifact@v4
+#         with:
+#           name: frontend-dist
+#           path: frontend/dist/
+#   deploy-student-backend:
+#     needs: []
+#     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Trigger Render Deployment
+#         run: curl -X POST ${{ secrets.RENDER_STUDENT_DEPLOY_HOOK }}
+
+#   deploy-frontend:
+#     needs: [lint-and-test, frontend-check]
+#     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v4
+
+#       - name: Setup Node.js
+#         uses: actions/setup-node@v4
+#         with:
+#           node-version: '22'
+#           cache: 'npm'
+#           cache-dependency-path: frontend/package-lock.json
+
+#       - name: Install dependencies
+#         working-directory: frontend
+#         run: npm install
+
+#       - name: Download build artifact
+#         uses: actions/download-artifact@v4
+#         with:
+#           name: frontend-dist
+#           path: dist
+        
+#       - name: Deploy to Netlify
+#         run: npx netlify-cli deploy --prod --dir=dist
+#         env:
+#           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+#           NETLIFY_TEAM_ID: ${{ secrets.NETLIFY_TEAM_ID }}
 name: Student Backend CI
 
 on:
@@ -7,9 +133,9 @@ on:
     branches: [ main ]
 
 jobs:
-  lint-and-test:
+  # 1. Test Job for Student Backend
+  test-student-backend:
     runs-on: ubuntu-latest
-
     services:
       postgres:
         image: postgres:16
@@ -24,7 +150,6 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -50,14 +175,39 @@ jobs:
         working-directory: student-backend
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/progress_tracker_test
-          JWT_SECRET: test_secret_key
+          JWT_SECRET: mysecretjwtkey123
           JWT_EXPIRES_IN: 7d
           NODE_ENV: test
         run: npm test
 
+  # 2. Test Job for Instructor Backend
+  test-instructor-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: instructor-backend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: instructor-backend
+        run: npm install
+
+      - name: Run unit tests
+        working-directory: instructor-backend
+        env:
+          JWT_SECRET: mysecretjwtkey123
+          NODE_ENV: test
+        run: npm test
+
+  # 3. Frontend Check (Test & Build)
   frontend-check:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -73,30 +223,55 @@ jobs:
         working-directory: frontend
         run: npm install
 
+      - name: Run tests
+        working-directory: frontend
+        run: npm run test
+
       - name: Build check
         working-directory: frontend
         env:
-         VITE_STUDENT_API_URL: ${{ github.ref == 'refs/heads/main' && secrets.PROD_API_URL || 'http://localhost:5000/api' }}
-        run: npm run build           
+         VITE_STUDENT_API_URL: ${{ github.ref == 'refs/heads/main' && secrets.VITE_STUDENT_API_URL || 'http://localhost:5000/api' }}
+         VITE_INSTRUCTOR_API_URL:  ${{ github.ref == 'refs/heads/main' && secrets.VITE_INSTRUCTOR_API_URL || 'http://localhost:5000/api' }}
+
+        run: npm run build
+                   
       - name: upload build artifact
         uses: actions/upload-artifact@v4
         with:
           name: frontend-dist
           path: frontend/dist/
+
+  # 4. Deployment Jobs (Only run on main branch push)
   deploy-frontend:
-    needs: [lint-and-test, frontend-check]
+    needs: [frontend-check, test-student-backend, test-instructor-backend]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
-
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
       - name: Download build artifact
         uses: actions/download-artifact@v4
         with:
           name: frontend-dist
           path: dist
-
       - name: Deploy to Netlify
         run: npx netlify-cli deploy --prod --dir=dist
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_TEAM_ID }}
+
+  deploy-student-backend:
+    needs: [test-student-backend]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Render Deployment
+        run: curl -X POST ${{ secrets.RENDER_STUDENT_DEPLOY_HOOK }}
+
+  deploy-instructor-backend:
+    needs: [test-instructor-backend]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Render Deployment
+        run: curl -X POST ${{ secrets.RENDER_INSTRUCTOR_DEPLOY_HOOK }}

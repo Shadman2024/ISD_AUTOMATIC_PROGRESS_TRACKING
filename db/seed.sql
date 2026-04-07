@@ -10,15 +10,15 @@
     -- reviews
 
 RESTART IDENTITY CASCADE;
--- ============================================
+-- ============================================\
 -- 1. USERS
 -- Password for ALL: "password123"
 -- ============================================
 INSERT INTO users (name, email, password, role) VALUES
-('Instructor Karim',  'karim@test.com',    '$2b$10$473YY5FQqDTPz/kJ/pKb3O/psLmcO0F1em8wMhiAyfYNWJQkEswGi', 'instructor'),
-('Student Shatabdi',  'shatabdi@test.com', '$2b$10$473YY5FQqDTPz/kJ/pKb3O/psLmcO0F1em8wMhiAyfYNWJQkEswGi', 'student'),
-('Student Shadman',   'shadman@test.com',  '$2b$10$473YY5FQqDTPz/kJ/pKb3O/psLmcO0F1em8wMhiAyfYNWJQkEswGi', 'student'),
-('Student Tanmi',     'tanmi@test.com',    '$2b$10$473YY5FQqDTPz/kJ/pKb3O/psLmcO0F1em8wMhiAyfYNWJQkEswGi', 'student');
+('Instructor Karim',  'karim@test.com',  'password123'  ,'instructor'),
+('Student Shatabdi',  'shatabdi@test.com', 'password123','student'),
+('Student Shadman',   'shadman@test.com',  'password123', 'student'),
+('Student Tanmi',     'tanmi@test.com',    'password123', 'student');
  
 -- ============================================
 -- 2. COURSES
@@ -159,4 +159,4 @@ VALUES
 (4, 2, 0.00, 0, 3)
 ON CONFLICT DO NOTHING;
 
-SELECT 'Seed data inserted successfully!' AS status;
+SELECT 'Seed data inserted successfully!' AS status
