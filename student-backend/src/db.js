@@ -7,12 +7,16 @@ const dotenv = require('dotenv');
 
 dotenv.config();
 
+const useSsl = process.env.PGSSLMODE === 'require' || process.env.DB_SSL === 'true';
+
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-   ssl: {
-    rejectUnauthorized: false // This allows the connection to Supabase's proxy
-  },
-  family:4
+  connectionString: process.env.DATABASE_URL,
+  ssl: useSsl
+    ? {
+        rejectUnauthorized: false,
+      }
+    : false,
+  family: 4
 });
 
 pool.connect((err) => {
